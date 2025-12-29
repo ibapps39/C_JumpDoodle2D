@@ -1,19 +1,7 @@
 #pragma once
 #include "raylib.h"
 #include "raymath.h"
-
-#define DEFAULT_WINDOW_X 600
-#define DEFAULT_WINDOW_Y 600
-#define DEFAULT_RESOLUTION (int)DEFAULT_WINDOW_X *(int)DEFAULT_WINDOW_Y
-#define DEFAULT_CENTER_SCREEN (Vector2){.x = DEFAULT_WINDOW_X / 2, .y = DEFAULT_WINDOW_Y / 2}
-
-#define DEFAULT_HORIZONTAL_SPEED 5.0f
-#define DEFAULT_VERTICAL_SPEED 5.0f
-#define DEFAULT_JUMP_HEIGHT 5.0f
-
-#define DEFAULT_PLAYER_SIZE (Vector2){.x = 2, .y = 4}
-#define DEFAULT_PLAYER_COLOR (Color){.r = 0, .g = 255, .b = 0, .a = 255}
-
+#include "defaults.h"
 
 typedef struct Player
 {
@@ -51,10 +39,15 @@ void draw_platforms()
     }
 }
 
+void draw_player(Player* player)
+{
+    DrawRectangleV(player->position, player->size, player->color);
+}
+
 Camera2D init_cam(Camera2D cam, Vector2 pos)
 {
     cam.target = pos;
-    cam.offset = (Vector2){0};
+    cam.offset = pos;
     cam.rotation = 0.0f;
     cam.zoom = 1.0f;
     return cam;
@@ -72,25 +65,56 @@ Player init_player(Vector2 position, Vector2 size, Color color)
 
 void Gravity(Vector2* p)
 {
-    p->y-=.2;
+    p->y+=.8;
 }
 
-void bounce(Vector2* p)
+void bounce(Vector2* p, const float bounce_dist)
 {
-    p->y += 1.5;
+    p->y -= bounce_dist;
 }
 
 void move_xz(Vector2* pos, const float HORIZONTAL_SPEED)
 {
-    switch (GetKeyPressed())
+    if (IsKeyDown(KEY_A)) pos->x -= HORIZONTAL_SPEED;
+    if (IsKeyDown(KEY_D)) pos->x += HORIZONTAL_SPEED;
+}
+
+int check_bounce(Rectangle* player, Rectangle* platform)
+{
+    return CheckCollisionRecs(*player, *platform);
+}
+
+void contain_player_debug(Player* player, float window_y_size)
+{
+    if (player->position.y > window_y_size)
     {
-    case KEY_D:
-        pos->x -= HORIZONTAL_SPEED;
-        break;
-    case KEY_A:
-        pos->x += HORIZONTAL_SPEED;
-        break;
-    default:
-        break;
+        player->position.y = 0;
     }
+    
+}
+
+Rectangle get_hitbox(const Vector2* pos, float size_x, float size_y)
+{
+    return (Rectangle){
+        .x = pos->x,
+        .y = pos->y,
+        .width = size_x,
+        .height = size_y
+    };
+}
+int check_hitbox(Vector2* u, float uw, float uh, Vector2* v, float vw, float vh)
+{
+    Rectangle ubox = (Rectangle){
+        .x = u->x,
+        .y = u->y,
+        .width = uw,
+        .height = uh
+    };
+    Rectangle vbox = (Rectangle){
+        .x = v->x,
+        .y = v->y,
+        .width = vw,
+        .height = vh
+    };
+    return CheckCollisionRecs(ubox, vbox);
 }

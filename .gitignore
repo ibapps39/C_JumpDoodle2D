@@ -1,0 +1,9 @@
+# Ignore build files
+*.o
+*.exe
+*.a
+*.so
+
+.build/*
+.vscode/*
+*.DS_Store

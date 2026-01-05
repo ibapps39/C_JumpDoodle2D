@@ -1,45 +1,24 @@
 #pragma once
+
+#include <time.h>
+
 #include "raylib.h"
 #include "raymath.h"
 #include "defaults.h"
+#include "gen_background.h"
+#include "colors.h"
+#include "platforms.h"
+#include "scroll_image.h"
 
 typedef struct Player
 {
     Vector2 position;
     Vector2 size; // {.x = width , .y = height}
     Color color;
+    Vector2 speed;
 } Player;
 
-typedef struct Platform
-{
-    Vector2 position;
-    Vector2 size;
-    Color color;
-} Platform;
-
-// On-screen platforms
-#define ON_SCREEN_PLATFORM_COUNT 4
-Platform PLATOFRMS[ON_SCREEN_PLATFORM_COUNT];
-
-Platform init_platform(Vector2 position, Vector2 size, Color color)
-{
-    Platform platform = {
-        .position = position,
-        .size = size,
-        .color = color,
-    };
-    return platform;
-}
-
-void draw_platforms()
-{
-    for (int i = 0; i < ON_SCREEN_PLATFORM_COUNT; i++)
-    {
-        DrawRectangleV(PLATOFRMS[i].position, PLATOFRMS[i].size, PLATOFRMS[i].color);
-    }
-}
-
-void draw_player(Player* player)
+void draw_player(Player *player)
 {
     DrawRectangleV(player->position, player->size, player->color);
 }
@@ -53,68 +32,93 @@ Camera2D init_cam(Camera2D cam, Vector2 pos)
     return cam;
 }
 
-Player init_player(Vector2 position, Vector2 size, Color color)
+Player init_player(Vector2 position, Vector2 size, Color color, Vector2 speed)
 {
     Player player = {
         .position = position,
         .size = size,
         .color = color,
-    };
+        .speed = (Vector2){0}};
     return player;
 }
 
-void Gravity(Vector2* p)
+void Gravity(Vector2 *speed_v, float g)
 {
-    p->y+=.8;
+    speed_v->y += g;
+}
+void Friction(Vector2 *speed_v, float f)
+{
+    speed_v->x = f;
 }
 
-void bounce(Vector2* p, const float bounce_dist)
+void move_xz(Vector2 *pos, const float min_x_speed, float *speed_x)
 {
-    p->y -= bounce_dist;
+    if (IsKeyDown(KEY_A))
+        pos->x -= fabsf(min_x_speed + *speed_x);
+    if (IsKeyDown(KEY_D))
+        pos->x += fabsf(min_x_speed + *speed_x);
+}
+void move_y(float *pos_y_component, float *speed_y_component)
+{
+    *pos_y_component += *speed_y_component;
 }
 
-void move_xz(Vector2* pos, const float HORIZONTAL_SPEED)
-{
-    if (IsKeyDown(KEY_A)) pos->x -= HORIZONTAL_SPEED;
-    if (IsKeyDown(KEY_D)) pos->x += HORIZONTAL_SPEED;
-}
-
-int check_bounce(Rectangle* player, Rectangle* platform)
+int check_bounce(Rectangle *player, Rectangle *platform)
 {
     return CheckCollisionRecs(*player, *platform);
 }
 
-void contain_player_debug(Player* player, float window_y_size)
+void contain_player_debug(Player *player, Vector2 window_dim)
 {
-    if (player->position.y > window_y_size)
+    if (player->position.y > window_dim.y)
     {
         player->position.y = 0;
     }
-    
+    if (player->position.y < 0)
+    {
+        player->position.y = window_dim.y;
+    }
+    if (player->speed.y > DEFAULT_MAX_SPEED_Y)
+    {
+        player->speed.y = 0;
+    }
+    if (player->position.x > window_dim.x)
+    {
+        player->position.x = 0;
+    }
+    if (player->position.x < 0)
+    {
+        player->position.x = window_dim.x;
+    }
+
 }
 
-Rectangle get_hitbox(const Vector2* pos, float size_x, float size_y)
+Rectangle get_hitbox(const Vector2 *pos, float size_x, float size_y)
 {
     return (Rectangle){
         .x = pos->x,
         .y = pos->y,
         .width = size_x,
-        .height = size_y
-    };
+        .height = size_y};
 }
-int check_hitbox(Vector2* u, float uw, float uh, Vector2* v, float vw, float vh)
+int check_hitbox(Vector2 *u, float u_width, float u_height, Vector2 *v, float v_width, float v_height)
 {
     Rectangle ubox = (Rectangle){
         .x = u->x,
         .y = u->y,
-        .width = uw,
-        .height = uh
-    };
+        .width = u_width,
+        .height = u_height};
     Rectangle vbox = (Rectangle){
         .x = v->x,
         .y = v->y,
-        .width = vw,
-        .height = vh
-    };
+        .width = v_width,
+        .height = v_height};
     return CheckCollisionRecs(ubox, vbox);
+}
+
+// onCollision per IsCollisionRecs() && speed_v > 0
+void onCollision(Vector2 *speed_v, const float force, const float friction)
+{
+    speed_v->y = force;
+    Friction(speed_v, friction);
 }

@@ -18,6 +18,12 @@ void genereate_random_background(float screen_x, float screen_y, Vector2 *player
     {
         color_x = get_random_color();
         color_y = get_random_color();
+        if (color_x.r == color_y.r &&
+            color_x.g == color_y.g &&
+            color_x.b == color_y.b)
+        {
+            color_y = get_random_color();
+        }
         initialized = true;
     }
 

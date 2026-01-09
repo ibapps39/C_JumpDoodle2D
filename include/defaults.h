@@ -21,3 +21,11 @@
 
 // On-screen platforms
 #define ON_SCREEN_PLATFORM_COUNT 4
+
+#define V2Zero (Vector2){0}
+#define PlayerZero (Player){0}
+#define ACTIVE 1
+#define INACTIVE 0
+
+#define LEFT -1
+#define RIGHT 1

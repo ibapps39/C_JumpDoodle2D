@@ -29,25 +29,47 @@ int main(void)
         .x = platform_pos.x, .y = platform_pos.y, .width = platform_size.x, .height = platform_size.y};
     Color platform_color = ORANGE;
     // [=====GAME VARIABLE INITIALIZATION=====]
-    float g = 1.0f;
+    const float GRAVITY = 1.0f;
+    float g = GRAVITY;
     float texture_speed_y = 1.0f;
     const float minimum_x_speed = DEFAULT_HORIZONTAL_SPEED;
 
+    int game_over_flag = 0;
+    int game_state = ACTIVE;
+    // save state player
+    Player player_temp = (Player){0};
+    float g_t = 0;
+    float bounce_force = -24.0f;
+    float friction = 5.0f;
+
     Platform platform_array[ON_SCREEN_PLATFORM_COUNT];
-    populate_platforms(platform_array, (Vector2){.x = window_width, .y = window_width}, platform_size, player.size.y);
-    // printf("\n\nsize of platforms is: %.2lu\n\n", ( sizeof(platform_array)/sizeof(platform_array[0]) ) );
+
+    populate_platforms(
+        platform_array,
+        (Vector2){.x = window_width, .y = window_height},
+        platform_size,
+        bounce_force
+    );
     assert(sizeof(platform_array) / sizeof(platform_array[0]) > 0);
+    Vector2 last_bounce_pos = V2Zero;
     while (!WindowShouldClose())
     {
         if (IsKeyPressed(KEY_Q))
         {
-            populate_platforms(platform_array, (Vector2){.x = window_width, .y = window_width}, platform_size, player.size.y);
+            populate_platforms(
+        platform_array,
+        (Vector2){.x = window_width, .y = window_height},
+        platform_size,
+        bounce_force
+    );
         }
-        
-        move_xz(&player.position, minimum_x_speed, &player.speed.x);
-        move_y(&player.position.y, &player.speed.y);
+        if (game_state == ACTIVE)
+        {
+            move_xz(&player.position, minimum_x_speed, &player.speed.x);
+            move_y(&player.position.y, &player.speed.y);
+            Gravity(&player.speed, g);
+        }
 
-        Gravity(&player.speed, g);
         for (size_t i = 0; i < 4; i++)
         {
             Platform p = platform_array[i];
@@ -57,26 +79,47 @@ int main(void)
                     &p.position, p.size.x, p.size.y) &&
                 player.speed.y > 0)
             {
-                //player.position.y = platform_hitbox.y - player.size.y;
+                // player.position.y = platform_hitbox.y - player.size.y;
                 onCollision(&player.speed, -24, 5.0);
+                last_bounce_pos = player.position;
             }
         }
 
-        contain_player_debug(&player, (Vector2){.x = window_width, .y = window_height});
-        if(player.position.y <= 0) 
+        contain_player_debug(&player, (Vector2){.x = window_width, .y = window_height}, 0);
+        if (player.position.y <= 0)
         {
-            populate_platforms(platform_array, (Vector2){.x = window_width, .y = window_width}, platform_size, player.size.y);
+
+populate_platforms(
+        platform_array,
+        (Vector2){.x = window_width, .y = window_height},
+        platform_size,
+        bounce_force
+    );
+        }
+        if (player.position.y >= screen_bottom && is_falling(player.speed.y))
+        {
+            game_over_flag = 1;
+            game_over(&player, (Vector2){.x = window_width, .y = window_height});
+            // player.speed = (Vector2){0};
+        }
+        if (IsKeyPressed(KEY_S))
+        {
+            game_state = freeze_game(game_state);
         }
 
         BeginDrawing();
         ClearBackground(BLACK);
+
         genereate_random_background(window_width, window_height, &player.position);
         BeginMode2D(camera);
         draw_platforms(platform_array);
         draw_player(&player);
+        DrawText(TextFormat("Speed Y: %.2f", player.speed.y), 10, 10, 20, RAYWHITE);
+        DrawText(TextFormat("Is Falling: %i", is_falling(player.speed.y)), 10, 40, 20, RAYWHITE);
+        DrawText(TextFormat("GAME STATE: %i", game_state), 10, 60, 20, RAYWHITE);
+        DrawText(TextFormat("Last Recorded VY Speed: x: %.2f y: %.2f", player_temp.speed.x, player_temp.speed.y), 10, 80, 20, PINK);
 
         EndMode2D();
-
         EndDrawing();
     }
     CloseWindow();

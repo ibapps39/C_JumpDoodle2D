@@ -68,9 +68,30 @@ int check_bounce(Rectangle *player, Rectangle *platform)
     return CheckCollisionRecs(*player, *platform);
 }
 
-void contain_player_debug(Player *player, Vector2 window_dim)
+void game_reset(Player *player, Vector2 screen_center)
 {
-    if (player->position.y > window_dim.y)
+    player->position = screen_center;
+    player->speed = (Vector2){0};
+}
+
+void draw_game_over_screen(Vector2 screen_dim)
+{
+    ClearBackground(WHITE);
+    DrawText("GAME OVER!", 200, 300, 50, RED);
+    DrawText("Press R to Restart", 150, 360, 30, DARKGRAY);
+}
+
+void game_over(Player *player, Vector2 screen_dim)
+{
+    if (IsKeyPressed(KEY_R))
+    {
+        game_reset(&player, (Vector2){screen_dim.x / 2.0f, screen_dim.y / 2.0f});
+    }
+}
+
+void contain_player_debug(Player *player, Vector2 window_dim, int flags)
+{
+    if (player->position.y > window_dim.y && flags == 0)
     {
         player->position.y = 0;
     }
@@ -90,7 +111,6 @@ void contain_player_debug(Player *player, Vector2 window_dim)
     {
         player->position.x = window_dim.x;
     }
-
 }
 
 Rectangle get_hitbox(const Vector2 *pos, float size_x, float size_y)
@@ -122,3 +142,40 @@ void onCollision(Vector2 *speed_v, const float force, const float friction)
     speed_v->y = force;
     Friction(speed_v, friction);
 }
+
+int is_falling(float player_y_speed)
+{
+    return player_y_speed > 0;
+}
+
+int freeze_game(int pause)
+{
+    switch (pause)
+    {
+    case ACTIVE:
+        return INACTIVE;
+        break;
+    case INACTIVE:
+        return ACTIVE;
+        break;
+    default:
+        break;
+    }
+}
+
+Player copy_player_data(Player* p)
+{
+    return (Player){
+        .position = p->position,
+        .speed = p->speed,
+        .color = p->color,
+        .size = p->size
+    };
+}
+// void copy_player_data(Player* p, Player* p2)
+// {
+//     p2->position = p->position;
+//     p2->speed = p->speed;
+//     p2->color = p->color;
+//     p2->size = p->size;
+// }

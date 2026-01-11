@@ -37,78 +37,6 @@ Platform get_random_platform(Vector2 size, Vector2 visible_area)
     };
 }
 
-// void fix_overlap(Platform* PA, float player_height)
-// {
-//     for (int i = 0; i < ON_SCREEN_PLATFORM_COUNT; i++)
-//     {
-//         if ( fabsf( PA[i].position.y - PA[i+1].position.y ) < PA[i].size.y)
-//         {
-//             int sign = GetRandomValue(LEFT, RIGHT);
-//             PA[i].position.y -= fmax(PA[i].size.y*2, PA[i+1].size.y*2)*sign;
-//         };
-
-//         if ( fabsf( PA[i].position.x - PA[i+1].position.x ) < PA[i].size.x)
-//         {
-//             int sign = GetRandomValue(LEFT, RIGHT);
-//             PA[i].position.x += fmax(PA[i].size.x*2, PA[i+1].size.x*2)*sign;
-//         };
-//     }
-// }
-// Maybe just break up the screen into sections and assign platforms to each section?
-// void fix_platform_height(Platform* PA, Vector2 last_jump_pos, float force)
-// {
-//     float num_sectors = GetScreenHeight() / ON_SCREEN_PLATFORM_COUNT;
-//     float bottom = GetScreenHeight();
-//     for (int i = 0; i < num_sectors; i++)
-//     {
-//         if (PA[i].position.y > max_height)
-//         {
-//             PA[i].position.y =  max_height;
-//         }
-//     }
-// }
-
-void fix_not_on_screen(Platform *PA, Vector2 visible_area)
-{
-    for (int i = 0; i < ON_SCREEN_PLATFORM_COUNT; i++)
-    {
-        if (PA[i].position.y > visible_area.y - PA[i].size.y)
-        {
-            PA[i].position.y = visible_area.y - PA[i].size.y;
-        }
-        if (PA[i].position.y < 0)
-        {
-            PA[i].position.y = 0;
-        }
-        if (PA[i].position.x > visible_area.x - PA[i].size.x)
-        {
-            PA[i].position.x = visible_area.x - PA[i].size.x;
-        }
-        if (PA[i].position.x < 0)
-        {
-            PA[i].position.x = 0;
-        }
-    }
-}
-
-// void populate_platforms(
-//     Platform PA[ON_SCREEN_PLATFORM_COUNT],
-//     Vector2 visible_area,
-//     Vector2 size,
-//     float player_height,
-//     Vector2 last_jump_pos,
-//     float force
-// )
-// {
-//     for (int i = 0; i < ON_SCREEN_PLATFORM_COUNT; i++)
-//     {
-//         PA[i] = get_random_platform(size, visible_area);
-//     }
-//     fix_overlap(PA, player_height);
-//     //fix_platform_height(PA, last_jump_pos, force);
-//     fix_not_on_screen(PA, visible_area);
-// }
-
 void populate_platforms(
     Platform PA[ON_SCREEN_PLATFORM_COUNT],
     Vector2 visible_area,
@@ -136,6 +64,47 @@ void populate_platforms(
         };
     }
 }
+
+// void gen_platforms(
+//     Platform PA[ON_SCREEN_PLATFORM_COUNT],
+//     Vector2 visible_area,
+//     Vector2 platform_size,
+//     float jump_height,
+//     Vector2* player_pos, 
+//     float dy,
+//     float dt
+// )
+// {
+//     const int num_sectors = ON_SCREEN_PLATFORM_COUNT;
+//     const float sector_height = visible_area.y / num_sectors;
+//     const float max_x = fmaxf(0.0f, (visible_area.x - platform_size.x));
+//     const float jump_clearance = fabsf(jump_height)*0.9f;
+//     const float gen_point_h = visible_area.y/4.0f;
+   
+//     static float total_dy = 0.0f;
+//     total_dy += dy*0.3;
+//     float wrap_dy = fmodf(total_dy, gen_point_h);
+
+//     for (int i = 0; i < num_sectors; i++)
+//     {
+//         float min_y = sector_height * i;
+//         // Ensure that platforms are not too tall 
+//         float max_y =  ( ( sector_height * (i + 1) ) - platform_size.y ) - jump_clearance;
+//         max_y = fmaxf(min_y, max_y);
+
+//         PA[i] = (Platform){
+//             .position = (Vector2){
+//                 .x = GetRandomValue(0, (int)max_x),
+//                 .y = 0.0f
+//             },
+//             .color = get_random_color(),
+//             .size = platform_size
+//         };
+//         // as player moves up, move platforms down
+//         PA[i].position.y += dy
+//     }
+    
+// }
 
 void draw_platforms(Platform platform_array[ON_SCREEN_PLATFORM_COUNT])
 {

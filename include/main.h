@@ -9,6 +9,7 @@
 #include "colors.h"
 #include "platforms.h"
 #include "scroll_image.h"
+#include "misc.h"
 
 typedef struct Player
 {
@@ -68,10 +69,26 @@ int check_bounce(Rectangle *player, Rectangle *platform)
     return CheckCollisionRecs(*player, *platform);
 }
 
-void game_reset(Player *player, Vector2 screen_center)
+void game_reset(
+    Player *player, 
+    Vector2 screen_center, 
+    int *game_state, 
+    Platform *platform_array, 
+    Vector2 platform_size, 
+    float bounce_force, 
+    float window_width, 
+    float window_height
+)
 {
-    player->position = screen_center;
-    player->speed = (Vector2){0};
+
+        player->position = screen_center;
+        player->speed = (Vector2){0};
+        *game_state = ACTIVE;
+        populate_platforms(
+            platform_array,
+            (Vector2){.x = window_width, .y = window_height},
+            platform_size,
+            bounce_force);
 }
 
 void draw_game_over_screen(Vector2 screen_dim)
@@ -79,14 +96,6 @@ void draw_game_over_screen(Vector2 screen_dim)
     ClearBackground(WHITE);
     DrawText("GAME OVER!", 200, 300, 50, RED);
     DrawText("Press R to Restart", 150, 360, 30, DARKGRAY);
-}
-
-void game_over(Player *player, Vector2 screen_dim)
-{
-    if (IsKeyPressed(KEY_R))
-    {
-        game_reset(&player, (Vector2){screen_dim.x / 2.0f, screen_dim.y / 2.0f});
-    }
 }
 
 void contain_player_debug(Player *player, Vector2 window_dim, int flags)
@@ -143,6 +152,7 @@ void onCollision(Vector2 *speed_v, const float force, const float friction)
     Friction(speed_v, friction);
 }
 
+// or we could just dy now but, eh, this is fine
 int is_falling(float player_y_speed)
 {
     return player_y_speed > 0;
@@ -163,19 +173,30 @@ int freeze_game(int pause)
     }
 }
 
-Player copy_player_data(Player* p)
+Player copy_player_data(Player *p)
 {
     return (Player){
         .position = p->position,
         .speed = p->speed,
         .color = p->color,
-        .size = p->size
-    };
+        .size = p->size};
 }
-// void copy_player_data(Player* p, Player* p2)
-// {
-//     p2->position = p->position;
-//     p2->speed = p->speed;
-//     p2->color = p->color;
-//     p2->size = p->size;
-// }
+
+Vector2 apply_collisions(Platform *platform_array[ON_SCREEN_PLATFORM_COUNT], Player *player)
+{
+    Vector2 last_bounce_pos;
+    for (size_t i = 0; i < ON_SCREEN_PLATFORM_COUNT; i++)
+    {
+        Platform p = **platform_array;
+        if (
+            check_hitbox(
+                &player->position, player->size.x, player->size.y,
+                &p.position, p.size.x, p.size.y) &&
+            player->speed.y > 0)
+        {
+            onCollision(&player->speed, -24, 5.0);
+            last_bounce_pos = player->position;
+        }
+    }
+    return last_bounce_pos;
+}

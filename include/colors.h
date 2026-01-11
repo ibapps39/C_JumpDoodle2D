@@ -46,3 +46,4 @@ Color get_random_color()
 {
     return get_neon_color((neon_colors)(GetRandomValue(0, 6)));
 }
+

@@ -1,14 +1,14 @@
 #pragma once
 
 #define DEFAULT_WINDOW_X 600
-#define DEFAULT_WINDOW_Y 600
+#define DEFAULT_WINDOW_Y 700
 #define DEFAULT_RESOLUTION (int)DEFAULT_WINDOW_X *(int)DEFAULT_WINDOW_Y
 #define DEFAULT_CENTER_SCREEN (Vector2){.x = DEFAULT_WINDOW_X / 2, .y = DEFAULT_WINDOW_Y / 2}
 #define DEFAULT_BOTTOM_SCREEN DEFAULT_WINDOW_Y
 
 #define DEFAULT_HORIZONTAL_SPEED 5.0f
 #define DEFAULT_VERTICAL_SPEED 5.0f
-#define DEFAULT_JUMP_HEIGHT 5.0f
+#define DEFAULT_JUMP_HEIGHT 24.0f
 
 #define DEFAULT_PLAYER_SIZE (Vector2){.x = .0333* DEFAULT_WINDOW_X, .y = .0667* DEFAULT_WINDOW_Y}
 #define DEFAULT_PLAYER_COLOR (Color){.r = 0, .g = 255, .b = 0, .a = 255}
@@ -17,3 +17,14 @@
 
 #define DEFAULT_BOUNCE_DIST_TOLERANCE 0.01
 #define DEFAULT_BOUNCE_HEIGHT .0333f*DEFAULT_WINDOW_Y
+#define DEFAULT_MAX_SPEED_Y 45.0f
+
+// On-screen platforms
+#define ON_SCREEN_PLATFORM_COUNT 4
+
+#define V2Zero (Vector2){0}
+#define PlayerZero (Player){0}
+
+
+#define LEFT -1
+#define RIGHT 1

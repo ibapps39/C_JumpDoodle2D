@@ -65,46 +65,14 @@ void populate_platforms(
     }
 }
 
-// void gen_platforms(
-//     Platform PA[ON_SCREEN_PLATFORM_COUNT],
-//     Vector2 visible_area,
-//     Vector2 platform_size,
-//     float jump_height,
-//     Vector2* player_pos, 
-//     float dy,
-//     float dt
-// )
-// {
-//     const int num_sectors = ON_SCREEN_PLATFORM_COUNT;
-//     const float sector_height = visible_area.y / num_sectors;
-//     const float max_x = fmaxf(0.0f, (visible_area.x - platform_size.x));
-//     const float jump_clearance = fabsf(jump_height)*0.9f;
-//     const float gen_point_h = visible_area.y/4.0f;
-   
-//     static float total_dy = 0.0f;
-//     total_dy += dy*0.3;
-//     float wrap_dy = fmodf(total_dy, gen_point_h);
-
-//     for (int i = 0; i < num_sectors; i++)
-//     {
-//         float min_y = sector_height * i;
-//         // Ensure that platforms are not too tall 
-//         float max_y =  ( ( sector_height * (i + 1) ) - platform_size.y ) - jump_clearance;
-//         max_y = fmaxf(min_y, max_y);
-
-//         PA[i] = (Platform){
-//             .position = (Vector2){
-//                 .x = GetRandomValue(0, (int)max_x),
-//                 .y = 0.0f
-//             },
-//             .color = get_random_color(),
-//             .size = platform_size
-//         };
-//         // as player moves up, move platforms down
-//         PA[i].position.y += dy
-//     }
-    
-// }
+// [===== Progressive Platform Population =====]
+void shift_platforms_down(Platform PA[ON_SCREEN_PLATFORM_COUNT], float dy)
+{
+    for (int i = 0; i < ON_SCREEN_PLATFORM_COUNT; i++)
+    { 
+        PA[i].position.y += dy;
+    }
+}
 
 void draw_platforms(Platform platform_array[ON_SCREEN_PLATFORM_COUNT])
 {

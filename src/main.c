@@ -42,12 +42,12 @@ int main(void)
     float g_t = 0;
     float bounce_force = -24.0f;
     float friction = 5.0f;
-    int is_squash = 0;
+    int is_collision = 0;
 
     float score = 0.0f;
 
     Platform platform_array[ON_SCREEN_PLATFORM_COUNT];
-
+    //[======Initial Population of Platform====]
     populate_platforms(
         platform_array,
         (Vector2){.x = window_width, .y = window_height},
@@ -59,6 +59,7 @@ int main(void)
     {
         float py = player.position.y;
         float px = player.position.x;
+        //[=====RESET PLATFORMS=====]
         if (IsKeyPressed(KEY_Q))
         {
             populate_platforms(
@@ -67,6 +68,7 @@ int main(void)
                 platform_size,
                 bounce_force);
         }
+        // [===== MAKE GAME ACTIVE =====]
         if (game_state == ACTIVE)
         {
             move_xz(&player.position, minimum_x_speed, &player.speed.x);
@@ -75,40 +77,26 @@ int main(void)
             score += 0.01f;
         }
 
-        // [===== APPLY COLLISIONS =====]
-        for (size_t i = 0; i < 4; i++)
-        {
-            Platform p = platform_array[i];
-            if ( // Collision
-                check_hitbox(
-                    &player.position, player.size.x, player.size.y,
-                    &p.position, p.size.x, p.size.y) &&
-                player.speed.y > 0)
-            {
-                onCollision(&player.speed, -24, 5.0);
-                last_bounce_pos = player.position;
-                score += 10.0f;
-            }
-        }
+        // [===== APPLY COLLISION =====]
+        apply_collisions(&platform_array, &player, &is_collision);
+        // [===== ON COLLISION =====]
+        on_collision(&is_collision, &player, last_bounce_pos, &score);
+
+        // [===== CONTAIN PLAYER =====]
         contain_player_debug(&player, (Vector2){.x = window_width, .y = window_height}, 0);
 
-        if ((player.position.y <= player.size.y-24.0f))
-        {
-            populate_platforms(
-                platform_array,
-                (Vector2){.x = window_width, .y = window_height},
-                platform_size,
-                bounce_force);
-        }
+        // [===== GAME OVER =====]
         if ((player.position.y >= (screen_bottom - player.size.y)) && is_falling(player.speed.y))
         {
             draw_game_over_screen((Vector2){.x = window_width, .y = window_height});
             game_state = INACTIVE;
         }
+        // [===== DEBUG: FREEZE GAME =====]
         if (IsKeyPressed(KEY_S))
         {
             game_state = freeze_game(game_state);
         }
+        // [===== RESET GAME =====]
         if (IsKeyPressed(KEY_R))
         {
             game_reset(
@@ -119,8 +107,7 @@ int main(void)
                 platform_size,
                 bounce_force,
                 window_width,
-                window_height
-            );
+                window_height);
             score = 0.0f;
         }
 
@@ -134,9 +121,10 @@ int main(void)
         int text_start_y = 40;
         DrawText(TextFormat("Score: %.2f", score), SCREEN_CENTER.x, text_start_y, 20, RAYWHITE);
         DrawText(TextFormat("Is Falling: %i", is_falling(player.speed.y)), 10, text_start_y, 20, RAYWHITE);
-        DrawText(TextFormat("GAME STATE: %i", game_state), 10, text_start_y += 20, 20, RAYWHITE);
-        DrawText(TextFormat("Last Recorded VY Speed: x: %.2f y: %.2f", player_temp.speed.x, player_temp.speed.y), 10, text_start_y += 20, 20, PINK);
+        DrawText(TextFormat("screen bottom - py: %.2f", screen_bottom - py), 10, text_start_y += 20, 20, RAYWHITE);
+        DrawText(TextFormat("Last Recorded VY Speed: x: %.2f y: %.2f", player.speed.x, player.speed.y), 10, text_start_y += 20, 20, PINK);
         DrawText(TextFormat("Player x: %.2f y: %.2f", px, py), 10, text_start_y += 20, 20, WHITE);
+        DrawText(TextFormat("Collision %i", is_collision), 10, text_start_y += 20, 20, WHITE);
         EndMode2D();
         EndDrawing();
     }

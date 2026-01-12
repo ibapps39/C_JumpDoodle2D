@@ -11,6 +11,12 @@
 #include "scroll_image.h"
 #include "misc.h"
 
+typedef enum Game_States
+{
+    INACTIVE,
+    ACTIVE
+} Game_States;
+
 typedef struct Player
 {
     Vector2 position;
@@ -70,25 +76,24 @@ int check_bounce(Rectangle *player, Rectangle *platform)
 }
 
 void game_reset(
-    Player *player, 
-    Vector2 screen_center, 
-    int *game_state, 
-    Platform *platform_array, 
-    Vector2 platform_size, 
-    float bounce_force, 
-    float window_width, 
-    float window_height
-)
+    Player *player,
+    Vector2 screen_center,
+    int *game_state,
+    Platform *platform_array,
+    Vector2 platform_size,
+    float bounce_force,
+    float window_width,
+    float window_height)
 {
 
-        player->position = screen_center;
-        player->speed = (Vector2){0};
-        *game_state = ACTIVE;
-        populate_platforms(
-            platform_array,
-            (Vector2){.x = window_width, .y = window_height},
-            platform_size,
-            bounce_force);
+    player->position = screen_center;
+    player->speed = (Vector2){0};
+    *game_state = ACTIVE;
+    populate_platforms(
+        platform_array,
+        (Vector2){.x = window_width, .y = window_height},
+        platform_size,
+        bounce_force);
 }
 
 void draw_game_over_screen(Vector2 screen_dim)
@@ -104,10 +109,10 @@ void contain_player_debug(Player *player, Vector2 window_dim, int flags)
     {
         player->position.y = 0;
     }
-    if (player->position.y < 0)
-    {
-        player->position.y = window_dim.y;
-    }
+    // if (player->position.y < 0)
+    // {
+    //     player->position.y = window_dim.y;
+    // }
     if (player->speed.y > DEFAULT_MAX_SPEED_Y)
     {
         player->speed.y = 0;
@@ -130,23 +135,23 @@ Rectangle get_hitbox(const Vector2 *pos, float size_x, float size_y)
         .width = size_x,
         .height = size_y};
 }
-int check_hitbox(Vector2 *u, float u_width, float u_height, Vector2 *v, float v_width, float v_height)
+int check_hitbox(Vector2 *u_pos, float u_width, float u_height, Vector2 *v_pos, float v_width, float v_height)
 {
     Rectangle ubox = (Rectangle){
-        .x = u->x,
-        .y = u->y,
+        .x = u_pos->x,
+        .y = u_pos->y,
         .width = u_width,
         .height = u_height};
     Rectangle vbox = (Rectangle){
-        .x = v->x,
-        .y = v->y,
+        .x = v_pos->x,
+        .y = v_pos->y,
         .width = v_width,
         .height = v_height};
     return CheckCollisionRecs(ubox, vbox);
 }
 
 // onCollision per IsCollisionRecs() && speed_v > 0
-void onCollision(Vector2 *speed_v, const float force, const float friction)
+void apply_force(Vector2 *speed_v, const float force, const float friction)
 {
     speed_v->y = force;
     Friction(speed_v, friction);
@@ -158,7 +163,7 @@ int is_falling(float player_y_speed)
     return player_y_speed > 0;
 }
 
-int freeze_game(int pause)
+int freeze_game(Game_States pause)
 {
     switch (pause)
     {
@@ -182,21 +187,34 @@ Player copy_player_data(Player *p)
         .size = p->size};
 }
 
-Vector2 apply_collisions(Platform *platform_array[ON_SCREEN_PLATFORM_COUNT], Player *player)
+void apply_collisions(Platform platform_array[ON_SCREEN_PLATFORM_COUNT], Player *player, int *collision_occured)
 {
-    Vector2 last_bounce_pos;
+    *collision_occured = 0;
     for (size_t i = 0; i < ON_SCREEN_PLATFORM_COUNT; i++)
     {
-        Platform p = **platform_array;
-        if (
-            check_hitbox(
-                &player->position, player->size.x, player->size.y,
-                &p.position, p.size.x, p.size.y) &&
-            player->speed.y > 0)
+        Platform p = platform_array[i];
+        int touch = check_hitbox(
+            &player->position, player->size.x, player->size.y, 
+            &p.position, p.size.x, p.size.y) && player->speed.y > 0; // player->speed.y > 0 means falling
+        if (touch)
         {
-            onCollision(&player->speed, -24, 5.0);
-            last_bounce_pos = player->position;
+            *collision_occured = 1;
         }
     }
-    return last_bounce_pos;
+}
+
+void on_collision(int* collision_occured, Player *player, Vector2 last_bounce_pos, float *score)
+{
+    if (!(*collision_occured)) return;
+    apply_force(&player->speed, -24, 5.0);
+    last_bounce_pos = player->position;
+    *score += 10.0f;
+}
+
+void ACTIVE_game_loop(Game_States game_state, Player* player, float minimum_x_speed, float g, float *score)
+{
+            move_xz(&player->position, minimum_x_speed, &player->speed.x);
+            move_y(&player->position.y, &player->speed.y);
+            Gravity(&player->speed, g);
+            *score += 0.01f;
 }

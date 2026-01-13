@@ -203,12 +203,12 @@ void apply_collisions(Platform platform_array[ON_SCREEN_PLATFORM_COUNT], Player 
     }
 }
 
-void on_collision(int* collision_occured, Player *player, Vector2 last_bounce_pos, float *score)
+void on_collision(int* collision_occured, Player *player, Vector2 last_bounce_pos, float *score, float points_awareded, float bounce_force)
 {
     if (!(*collision_occured)) return;
-    apply_force(&player->speed, -24, 5.0);
+    apply_force(&player->speed, bounce_force, 5.0);
     last_bounce_pos = player->position;
-    *score += 10.0f;
+    *score += points_awareded;
 }
 
 void ACTIVE_game_loop(Game_States game_state, Player* player, float minimum_x_speed, float g, float *score)

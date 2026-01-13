@@ -64,13 +64,49 @@ void populate_platforms(
         };
     }
 }
+int is_colliding_platforms(Platform a, Platform b, Vector2 size)
+{
+    if (fabsf(a.position.x - b.position.x) <= size.x) return 1;
+    if (fabsf(a.position.y - b.position.y) <= size.y) return 2;
+    return 0;
+}
 
 // [===== Progressive Platform Population =====]
-void shift_platforms_down(Platform PA[ON_SCREEN_PLATFORM_COUNT], float dy)
+void move_platforms_down(Platform* PA, float dy, Vector2 visible_area, float jump_force, Vector2 player_pos)
 {
-    for (int i = 0; i < ON_SCREEN_PLATFORM_COUNT; i++)
-    { 
-        PA[i].position.y += dy;
+    for (size_t i = 0; i < ON_SCREEN_PLATFORM_COUNT; i++)
+    {
+        Platform next = PA[(i + 1) % ON_SCREEN_PLATFORM_COUNT];
+        
+        // Move the platforms to either match players dy or so that they are below them
+
+        float step = fminf(fabsf(dy)+jump_force, jump_force);
+        if (player_pos.y <= visible_area.y/2) PA[i].position.y += step;
+        
+
+
+        if (PA[i].position.y > visible_area.y + PA[i].size.y - jump_force)
+        {
+            PA[i] = get_random_platform(
+                PA[i].size, (Vector2){
+                    .x = visible_area.x, 
+                    .y = -PA[i].size.y
+                }    );
+            switch (is_colliding_platforms(PA[i], next, PA[i].size))
+            {
+                case 0:
+                    break;
+                case 1:
+                    next.position.x += PA[i+1].position.x;
+                    break;
+                case 2:
+                    next.position.y = -next.position.y;
+                    break;
+                default:
+                    break;
+                ///
+            };
+        }
     }
 }
 
@@ -81,3 +117,5 @@ void draw_platforms(Platform platform_array[ON_SCREEN_PLATFORM_COUNT])
         DrawRectangleV(platform_array[i].position, platform_array[i].size, platform_array[i].color);
     }
 }
+
+

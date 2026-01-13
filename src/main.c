@@ -11,6 +11,7 @@ int main(void)
     float center_y = window_height / 2;
     float screen_bottom = window_height;
     const Vector2 SCREEN_CENTER = (Vector2){.x = center_x, .y = center_y};
+    const Vector2 window_dim = (Vector2){.x = window_width, .y =window_height };
     InitWindow(window_width, window_height, "C_JUMPDOODLE_2D");
     SetTargetFPS(60);
 
@@ -45,6 +46,7 @@ int main(void)
     int is_collision = 0;
 
     float score = 0.0f;
+    float scroll_speed = 0.0f;
 
     Platform platform_array[ON_SCREEN_PLATFORM_COUNT];
     //[======Initial Population of Platform====]
@@ -57,6 +59,7 @@ int main(void)
     Vector2 last_bounce_pos = V2Zero;
     while (!WindowShouldClose())
     {
+
         float py = player.position.y;
         float px = player.position.x;
         //[=====RESET PLATFORMS=====]
@@ -75,12 +78,23 @@ int main(void)
             move_y(&player.position.y, &player.speed.y);
             Gravity(&player.speed, g);
             score += 0.01f;
+            // move_platforms_down(&platform_array, scroll_speed, window_dim);
+            parallax(window_width, window_height, player.position.y - py, player.position.x - px, GetFrameTime());
+            draw_platforms(platform_array);
+            draw_player(&player);
         }
 
         // [===== APPLY COLLISION =====]
-        apply_collisions(&platform_array, &player, &is_collision);
+        apply_collisions(platform_array, &player, &is_collision);
         // [===== ON COLLISION =====]
-        on_collision(&is_collision, &player, last_bounce_pos, &score);
+        on_collision(&is_collision, &player, last_bounce_pos, &score, 10.0f, bounce_force);
+
+        move_platforms_down(platform_array, fabsf(player.position.y-py), window_dim, -bounce_force/2, player.position);
+
+        // [===== ENSURE PLAYER HAS PLATFORM TO JUMP FROM AT START =====]
+        if (score < 1)  {
+            platform_array[0].position = (Vector2){.x = player.position.x, .y = player.position.y - 10};
+        }
 
         // [===== CONTAIN PLAYER =====]
         contain_player_debug(&player, (Vector2){.x = window_width, .y = window_height}, 0);
@@ -109,15 +123,13 @@ int main(void)
                 window_width,
                 window_height);
             score = 0.0f;
+            parallax(window_width, window_height, player.position.y - py, player.position.x - px, GetFrameTime());
         }
 
         BeginDrawing();
         ClearBackground(BLACK);
 
-        parallax(window_width, window_height, player.position.y - py, player.position.x - px, GetFrameTime());
         BeginMode2D(camera);
-        draw_platforms(platform_array);
-        draw_player(&player);
         int text_start_y = 40;
         DrawText(TextFormat("Score: %.2f", score), SCREEN_CENTER.x, text_start_y, 20, RAYWHITE);
         DrawText(TextFormat("Is Falling: %i", is_falling(player.speed.y)), 10, text_start_y, 20, RAYWHITE);
@@ -125,6 +137,7 @@ int main(void)
         DrawText(TextFormat("Last Recorded VY Speed: x: %.2f y: %.2f", player.speed.x, player.speed.y), 10, text_start_y += 20, 20, PINK);
         DrawText(TextFormat("Player x: %.2f y: %.2f", px, py), 10, text_start_y += 20, 20, WHITE);
         DrawText(TextFormat("Collision %i", is_collision), 10, text_start_y += 20, 20, WHITE);
+        
         EndMode2D();
         EndDrawing();
     }

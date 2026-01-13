@@ -132,11 +132,11 @@ int main(void)
         BeginMode2D(camera);
         int text_start_y = 40;
         DrawText(TextFormat("Score: %.2f", score), SCREEN_CENTER.x, text_start_y, 20, RAYWHITE);
-        DrawText(TextFormat("Is Falling: %i", is_falling(player.speed.y)), 10, text_start_y, 20, RAYWHITE);
-        DrawText(TextFormat("screen bottom - py: %.2f", screen_bottom - py), 10, text_start_y += 20, 20, RAYWHITE);
-        DrawText(TextFormat("Last Recorded VY Speed: x: %.2f y: %.2f", player.speed.x, player.speed.y), 10, text_start_y += 20, 20, PINK);
-        DrawText(TextFormat("Player x: %.2f y: %.2f", px, py), 10, text_start_y += 20, 20, WHITE);
-        DrawText(TextFormat("Collision %i", is_collision), 10, text_start_y += 20, 20, WHITE);
+        // DrawText(TextFormat("Is Falling: %i", is_falling(player.speed.y)), 10, text_start_y, 20, RAYWHITE);
+        // DrawText(TextFormat("screen bottom - py: %.2f", screen_bottom - py), 10, text_start_y += 20, 20, RAYWHITE);
+        // DrawText(TextFormat("Last Recorded VY Speed: x: %.2f y: %.2f", player.speed.x, player.speed.y), 10, text_start_y += 20, 20, PINK);
+        // DrawText(TextFormat("Player x: %.2f y: %.2f", px, py), 10, text_start_y += 20, 20, WHITE);
+        // DrawText(TextFormat("Collision %i", is_collision), 10, text_start_y += 20, 20, WHITE);
         
         EndMode2D();
         EndDrawing();

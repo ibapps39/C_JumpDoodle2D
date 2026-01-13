@@ -83,9 +83,7 @@ void move_platforms_down(Platform* PA, float dy, Vector2 visible_area, float jum
         float step = fminf(fabsf(dy)+jump_force, jump_force);
         if (player_pos.y <= visible_area.y/2) PA[i].position.y += step;
         
-
-
-        if (PA[i].position.y > visible_area.y + PA[i].size.y - jump_force)
+        if (PA[i].position.y > visible_area.y + PA[i].size.y + jump_force)
         {
             PA[i] = get_random_platform(
                 PA[i].size, (Vector2){
@@ -97,10 +95,10 @@ void move_platforms_down(Platform* PA, float dy, Vector2 visible_area, float jum
                 case 0:
                     break;
                 case 1:
-                    next.position.x += PA[i+1].position.x;
+                    next.position.x += next.size.x*2;
                     break;
                 case 2:
-                    next.position.y = -next.position.y;
+                    next.position.y = next.position.y*2+player_pos.y+jump_force;
                     break;
                 default:
                     break;

@@ -46,13 +46,13 @@ void populate_platforms(
     const int num_sectors = ON_SCREEN_PLATFORM_COUNT;
     const float sector_height = visible_area.y / num_sectors;
     const float max_x = fmaxf(0.0f, (visible_area.x - platform_size.x));
-    const float jump_clearance = fabsf(jump_height)*0.9f;
+    const float jump_clearance = fabsf(jump_height) * 0.9f;
 
     for (int i = 0; i < num_sectors; i++)
     {
         float min_y = sector_height * i;
-        // Ensure that platforms are not too tall 
-        float max_y =  ( ( sector_height * (i + 1) ) - platform_size.y ) - jump_clearance;
+        // Ensure that platforms are not too tall
+        float max_y = ((sector_height * (i + 1)) - platform_size.y) - jump_clearance;
         max_y = fmaxf(min_y, max_y);
 
         PA[i] = (Platform){
@@ -60,50 +60,29 @@ void populate_platforms(
                 .x = GetRandomValue(0, (int)max_x),
                 .y = GetRandomValue((int)min_y, (int)max_y)},
             .color = get_random_color(),
-            .size = platform_size
-        };
+            .size = platform_size};
     }
 }
-int is_colliding_platforms(Platform a, Platform b, Vector2 size)
-{
-    if (fabsf(a.position.x - b.position.x) <= size.x) return 1;
-    if (fabsf(a.position.y - b.position.y) <= size.y) return 2;
-    return 0;
-}
 
-// [===== Progressive Platform Population =====]
-void move_platforms_down(Platform* PA, float dy, Vector2 visible_area, float jump_force, Vector2 player_pos)
+//[===== Progressive Platform Population =====]
+void move_platforms_dy(Platform *PA, float dy, Vector2* player_pos, Vector2 visible_area, int num_platform, float jump_force)
 {
-    for (size_t i = 0; i < ON_SCREEN_PLATFORM_COUNT; i++)
+    int dont_move = (dy >= 0) || (player_pos->y >= visible_area.y/2);
+    if (dont_move)
     {
-        Platform next = PA[(i + 1) % ON_SCREEN_PLATFORM_COUNT];
+        dy = 0;
+        return;
+    }
+    
+    for (size_t i = 0; i < num_platform; i++)
+    {
+        // increase the platform y value as the player's y value decreases
         
-        // Move the platforms to either match players dy or so that they are below them
-
-        float step = fminf(fabsf(dy)+jump_force, jump_force);
-        if (player_pos.y <= visible_area.y/2) PA[i].position.y += step;
-        
-        if (PA[i].position.y > visible_area.y + PA[i].size.y + jump_force)
+        // if (player_pos->y < visible_area.y/3) PA[i].position.y += fabs(dy) + 3*jump_force; return;
+        PA[i].position.y += fabs(dy) + jump_force ;
+        if (PA[i].position.y > GetScreenHeight() + PA[i].size.y)
         {
-            PA[i] = get_random_platform(
-                PA[i].size, (Vector2){
-                    .x = visible_area.x, 
-                    .y = -PA[i].size.y
-                }    );
-            switch (is_colliding_platforms(PA[i], next, PA[i].size))
-            {
-                case 0:
-                    break;
-                case 1:
-                    next.position.x += next.size.x*2;
-                    break;
-                case 2:
-                    next.position.y = next.position.y*2+player_pos.y+jump_force;
-                    break;
-                default:
-                    break;
-                ///
-            };
+            PA[i] = get_random_platform(PA[i].size, (Vector2){.x = GetScreenWidth(), .y = fabs(jump_force) });
         }
     }
 }
@@ -115,5 +94,3 @@ void draw_platforms(Platform platform_array[ON_SCREEN_PLATFORM_COUNT])
         DrawRectangleV(platform_array[i].position, platform_array[i].size, platform_array[i].color);
     }
 }
-
-

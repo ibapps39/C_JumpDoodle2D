@@ -38,10 +38,13 @@ int main(void)
 
     int game_over_flag = 0;
     int game_state = ACTIVE;
+    int num_platform = ON_SCREEN_PLATFORM_COUNT;
+    int num_sector = GetScreenHeight() / num_platform;
     // save state player
     Player player_temp = (Player){0};
     float g_t = 0;
-    float bounce_force = -24.0f;
+
+    float bounce_force = 6*(-1*num_sector/player.size.y);
     float friction = 5.0f;
     int is_collision = 0;
 
@@ -57,11 +60,13 @@ int main(void)
         bounce_force);
     assert(sizeof(platform_array) / sizeof(platform_array[0]) > 0);
     Vector2 last_bounce_pos = V2Zero;
+    printf("jump height: %.2f\n", bounce_force);
     while (!WindowShouldClose())
     {
 
         float py = player.position.y;
         float px = player.position.x;
+
         //[=====RESET PLATFORMS=====]
         if (IsKeyPressed(KEY_Q))
         {
@@ -78,7 +83,9 @@ int main(void)
             move_y(&player.position.y, &player.speed.y);
             Gravity(&player.speed, g);
             score += 0.01f;
-            // move_platforms_down(&platform_array, scroll_speed, window_dim);
+            //check_platforms(platform_array, ON_SCREEN_PLATFORM_COUNT);
+            move_platforms_dy(platform_array, player.position.y - py, &player.position, window_dim, ON_SCREEN_PLATFORM_COUNT, -bounce_force);
+            //player.position.y = center_y;
             parallax(window_width, window_height, player.position.y - py, player.position.x - px, GetFrameTime());
             draw_platforms(platform_array);
             draw_player(&player);
@@ -89,7 +96,7 @@ int main(void)
         // [===== ON COLLISION =====]
         on_collision(&is_collision, &player, last_bounce_pos, &score, 10.0f, bounce_force);
 
-        move_platforms_down(platform_array, fabsf(player.position.y-py), window_dim, -bounce_force/2, player.position);
+        //move_platforms_down(platform_array, fabsf(player.position.y-py), window_dim, -bounce_force/2, player.position);
 
         // [===== ENSURE PLAYER HAS PLATFORM TO JUMP FROM AT START =====]
         if (score < 1)  {

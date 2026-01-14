@@ -65,7 +65,13 @@ void populate_platforms(
 }
 
 //[===== Progressive Platform Population =====]
-void move_platforms_dy(Platform *PA, float dy, Vector2* player_pos, Vector2 visible_area, int num_platform, float jump_force)
+void move_platforms_dy(
+    Platform *PA, 
+    float dy, 
+    Vector2* player_pos, 
+    Vector2 visible_area, 
+    int num_platform, 
+    float jump_force)
 {
     int dont_move = (dy >= 0) || (player_pos->y >= visible_area.y/2);
     if (dont_move)
@@ -78,12 +84,18 @@ void move_platforms_dy(Platform *PA, float dy, Vector2* player_pos, Vector2 visi
     {
         // increase the platform y value as the player's y value decreases
         
-        // if (player_pos->y < visible_area.y/3) PA[i].position.y += fabs(dy) + 3*jump_force; return;
         PA[i].position.y += fabs(dy) + jump_force ;
         if (PA[i].position.y > GetScreenHeight() + PA[i].size.y)
         {
-            PA[i] = get_random_platform(PA[i].size, (Vector2){.x = GetScreenWidth(), .y = fabs(jump_force) });
+            int sign = (GetRandomValue(0,1) == 0) ? 1: -1;
+            int x_max = GetScreenWidth() + (GetScreenWidth()/2)*sign;
+            PA[i] = get_random_platform(PA[i].size, (Vector2){.x = x_max, .y = fabs(jump_force) });
         }
+        if (PA[i].position.y <= jump_force*2)
+        {
+            PA[i].position.y += jump_force*2;
+        }
+        
     }
 }
 

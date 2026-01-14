@@ -83,9 +83,7 @@ int main(void)
             move_y(&player.position.y, &player.speed.y);
             Gravity(&player.speed, g);
             score += 0.01f;
-            //check_platforms(platform_array, ON_SCREEN_PLATFORM_COUNT);
             move_platforms_dy(platform_array, player.position.y - py, &player.position, window_dim, ON_SCREEN_PLATFORM_COUNT, -bounce_force);
-            //player.position.y = center_y;
             parallax(window_width, window_height, player.position.y - py, player.position.x - px, GetFrameTime());
             draw_platforms(platform_array);
             draw_player(&player);
@@ -95,8 +93,6 @@ int main(void)
         apply_collisions(platform_array, &player, &is_collision);
         // [===== ON COLLISION =====]
         on_collision(&is_collision, &player, last_bounce_pos, &score, 10.0f, bounce_force);
-
-        //move_platforms_down(platform_array, fabsf(player.position.y-py), window_dim, -bounce_force/2, player.position);
 
         // [===== ENSURE PLAYER HAS PLATFORM TO JUMP FROM AT START =====]
         if (score < 1)  {
@@ -138,12 +134,7 @@ int main(void)
 
         BeginMode2D(camera);
         int text_start_y = 40;
-        DrawText(TextFormat("Score: %.2f", score), SCREEN_CENTER.x, text_start_y, 20, RAYWHITE);
-        // DrawText(TextFormat("Is Falling: %i", is_falling(player.speed.y)), 10, text_start_y, 20, RAYWHITE);
-        // DrawText(TextFormat("screen bottom - py: %.2f", screen_bottom - py), 10, text_start_y += 20, 20, RAYWHITE);
-        // DrawText(TextFormat("Last Recorded VY Speed: x: %.2f y: %.2f", player.speed.x, player.speed.y), 10, text_start_y += 20, 20, PINK);
-        // DrawText(TextFormat("Player x: %.2f y: %.2f", px, py), 10, text_start_y += 20, 20, WHITE);
-        // DrawText(TextFormat("Collision %i", is_collision), 10, text_start_y += 20, 20, WHITE);
+        DrawText(TextFormat("Score: %.2f", score), SCREEN_CENTER.x-20, SCREEN_CENTER.y/3, 20, RAYWHITE);
         
         EndMode2D();
         EndDrawing();

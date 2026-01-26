@@ -51,14 +51,16 @@ void populate_platforms(
     for (int i = 0; i < num_sectors; i++)
     {
         float min_y = sector_height * i;
-        // Ensure that platforms are not too tall
+        // Ensure that platforms are not too far apart
         float max_y = ((sector_height * (i + 1)) - platform_size.y) - jump_clearance;
         max_y = fmaxf(min_y, max_y);
 
         PA[i] = (Platform){
-            .position = (Vector2){
+            .position = (Vector2)
+            {
                 .x = GetRandomValue(0, (int)max_x),
-                .y = GetRandomValue((int)min_y, (int)max_y)},
+                .y = sector_height*i
+            },
             .color = get_random_color(),
             .size = platform_size};
     }

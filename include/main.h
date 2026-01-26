@@ -7,28 +7,18 @@
 #include "defaults.h"
 #include "gen_background.h"
 #include "colors.h"
+#include "collision.h"
 #include "platforms.h"
+#include "player.h"
 #include "scroll_image.h"
 #include "misc.h"
+#include "unit_test.h"
 
 typedef enum Game_States
 {
     INACTIVE,
     ACTIVE
 } Game_States;
-
-typedef struct Player
-{
-    Vector2 position;
-    Vector2 size; // {.x = width , .y = height}
-    Color color;
-    Vector2 speed;
-} Player;
-
-void draw_player(Player *player)
-{
-    DrawRectangleV(player->position, player->size, player->color);
-}
 
 Camera2D init_cam(Camera2D cam, Vector2 pos)
 {
@@ -39,24 +29,6 @@ Camera2D init_cam(Camera2D cam, Vector2 pos)
     return cam;
 }
 
-Player init_player(Vector2 position, Vector2 size, Color color, Vector2 speed)
-{
-    Player player = {
-        .position = position,
-        .size = size,
-        .color = color,
-        .speed = (Vector2){0}};
-    return player;
-}
-
-void Gravity(Vector2 *speed_v, float g)
-{
-    speed_v->y += g;
-}
-void Friction(Vector2 *speed_v, float f)
-{
-    speed_v->x = f;
-}
 
 void move_xz(Vector2 *pos, const float min_x_speed, float *speed_x)
 {
@@ -89,11 +61,6 @@ void game_reset(
     player->position = screen_center;
     player->speed = (Vector2){0};
     *game_state = ACTIVE;
-    populate_platforms(
-        platform_array,
-        (Vector2){.x = window_width, .y = window_height},
-        platform_size,
-        bounce_force);
 }
 
 void draw_game_over_screen(Vector2 screen_dim)
@@ -135,27 +102,7 @@ Rectangle get_hitbox(const Vector2 *pos, float size_x, float size_y)
         .width = size_x,
         .height = size_y};
 }
-int check_hitbox(Vector2 *u_pos, float u_width, float u_height, Vector2 *v_pos, float v_width, float v_height)
-{
-    Rectangle ubox = (Rectangle){
-        .x = u_pos->x,
-        .y = u_pos->y,
-        .width = u_width,
-        .height = u_height};
-    Rectangle vbox = (Rectangle){
-        .x = v_pos->x,
-        .y = v_pos->y,
-        .width = v_width,
-        .height = v_height};
-    return CheckCollisionRecs(ubox, vbox);
-}
 
-// onCollision per IsCollisionRecs() && speed_v > 0
-void apply_force(Vector2 *speed_v, const float force, const float friction)
-{
-    speed_v->y = force;
-    Friction(speed_v, friction);
-}
 
 // or we could just dy now but, eh, this is fine
 int is_falling(float player_y_speed)
@@ -187,29 +134,7 @@ Player copy_player_data(Player *p)
         .size = p->size};
 }
 
-void apply_collisions(Platform platform_array[ON_SCREEN_PLATFORM_COUNT], Player *player, int *collision_occured)
-{
-    *collision_occured = 0;
-    for (size_t i = 0; i < ON_SCREEN_PLATFORM_COUNT; i++)
-    {
-        Platform p = platform_array[i];
-        int touch = check_hitbox(
-            &player->position, player->size.x, player->size.y, 
-            &p.position, p.size.x, p.size.y) && player->speed.y > 0; // player->speed.y > 0 means falling
-        if (touch)
-        {
-            *collision_occured = 1;
-        }
-    }
-}
 
-void on_collision(int* collision_occured, Player *player, Vector2 last_bounce_pos, float *score, float points_awareded, float bounce_force)
-{
-    if (!(*collision_occured)) return;
-    apply_force(&player->speed, bounce_force, 5.0);
-    last_bounce_pos = player->position;
-    *score += points_awareded;
-}
 
 void ACTIVE_game_loop(Game_States game_state, Player* player, float minimum_x_speed, float g, float *score)
 {
